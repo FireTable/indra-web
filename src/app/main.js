@@ -2028,10 +2028,8 @@ function buildJson() {
 
 function renderOutputs(force = false) {
   if (!pages.length) return;
-  const multi = pages.length > 1;
-  const head = (p) => (multi ? `## ${p.label}\n\n` : "");
-  RAW.md = pages.map((p) => head(p) + p.md).join("\n\n");
-  RAW.txt = pages.map((p) => (multi ? p.label + "\n" : "") + p.lines.map((l) => l.text).join("\n")).join("\n\n");
+  RAW.md = pages.map((p) => (p.md || "").trim()).filter(Boolean).join("\n\n---\n\n");
+  RAW.txt = pages.map((p) => p.lines.map((l) => l.text).join("\n").trim()).filter(Boolean).join("\n\n");
   RAW.json = buildJson();
 
   // 若处于流式处理且停留在工作流页签，暂不生成成千上万个高亮 DOM 节点，避免主线程卡顿

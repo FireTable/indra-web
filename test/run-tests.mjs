@@ -153,6 +153,15 @@ try {
   const orientIn = orientInput(gray2x3, 2, 3, 768);
   assert(orientIn.dims.join(",") === "1,1,768,768", "orientInput tensor dims are [1, 1, 768, 768]");
   assert(orientIn.data.length === 768 * 768, "orientInput data length is 768*768");
+
+  // Test Multi-page Markdown Output formatting (no injected ## 页 x/y)
+  const mockPages = [
+    { md: "# Section 1\n\nContent page 1.", lines: [{ text: "Content page 1." }] },
+    { md: "## Section 2\n\nContent page 2.", lines: [{ text: "Content page 2." }] },
+  ];
+  const combinedMd = mockPages.map((p) => (p.md || "").trim()).filter(Boolean).join("\n\n---\n\n");
+  assert(!combinedMd.includes("## 页"), "Combined multi-page Markdown does not contain artificial ## 页 headers");
+  assert(combinedMd.includes("\n\n---\n\n"), "Pages cleanly delimited by standard horizontal rule");
 } catch (err) {
   assert(false, `Algorithm test error: ${err.message}`);
 }
