@@ -10,6 +10,8 @@ import { execSync } from "node:child_process";
 
 import { components } from "../src/core/detection.js";
 import { xycut, decodeOrder } from "../src/core/order.js";
+import { tableToMarkdown } from "../src/core/markdown.js";
+import { rotateGray, orientInput } from "../src/core/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
@@ -112,6 +114,45 @@ try {
   ]);
   const decoded = decodeOrder(pairwise, 3);
   assert(decoded.join(",") === "0,1,2", `Pairwise order decode: expected [0, 1, 2], got [${decoded.join(", ")}]`);
+
+  // Test Table Markdown Grid Reconstruction
+  const sampleTableLines = [
+    { box: [50, 10, 450, 25], text: "Table 1: Test Results" },
+    { box: [50, 40, 150, 60], text: "Task" },
+    { box: [180, 40, 280, 60], text: "Metric | Status" },
+    { box: [310, 40, 410, 60], text: "Score" },
+    { box: [50, 70, 150, 90], text: "OCR" },
+    { box: [180, 70, 280, 90], text: "Passed" },
+    { box: [310, 70, 410, 90], text: "99.8" }
+  ];
+  const tableMd = tableToMarkdown(sampleTableLines);
+  assert(tableMd.includes("**Table 1: Test Results**"), "Table title extracted");
+  assert(tableMd.includes("| Task | Metric \\| Status | Score |"), "Table header row generated and pipe escaped");
+  assert(tableMd.includes("| --- | --- | --- |"), "Table divider row generated");
+  assert(tableMd.includes("| OCR | Passed | 99.8 |"), "Table data row generated");
+
+  // Test Image Orientation Deskew (rotateGray)
+  // 2x3 matrix:
+  // [1, 2]
+  // [3, 4]
+  // [5, 6]
+  const gray2x3 = new Uint8Array([1, 2, 3, 4, 5, 6]);
+  // Rotate 180° -> should be [6, 5, 4, 3, 2, 1]
+  const rot180 = rotateGray(gray2x3, 2, 3, 2);
+  assert(rot180.w === 2 && rot180.h === 3, "rotateGray 180 dimensions match");
+  assert(Array.from(rot180.gray).join(",") === "6,5,4,3,2,1", "rotateGray 180 pixel order correct");
+
+  // Rotate 90° CW -> new dims 3x2:
+  // [5, 3, 1]
+  // [6, 4, 2]
+  const rot90 = rotateGray(gray2x3, 2, 3, 1);
+  assert(rot90.w === 3 && rot90.h === 2, "rotateGray 90 dimensions match");
+  assert(Array.from(rot90.gray).join(",") === "5,3,1,6,4,2", "rotateGray 90 pixel order correct");
+
+  // Test Orient Input Preprocessor
+  const orientIn = orientInput(gray2x3, 2, 3, 768);
+  assert(orientIn.dims.join(",") === "1,1,768,768", "orientInput tensor dims are [1, 1, 768, 768]");
+  assert(orientIn.data.length === 768 * 768, "orientInput data length is 768*768");
 } catch (err) {
   assert(false, `Algorithm test error: ${err.message}`);
 }

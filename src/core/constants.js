@@ -20,11 +20,11 @@ export const BLOCK_CLASSES = [
 ];
 
 export const NEEDED = [
-  "det.onnx", "rec.onnx", "rec_cjk.onnx", "script.onnx", "order.onnx", "meta.json"
+  "det.onnx", "rec.onnx", "rec_cjk.onnx", "script.onnx", "order.onnx", "orient.onnx", "meta.json"
 ];
 
 // 运行时可调项
-export const OPT = { longSide: 1024, adaptive: true, minConf: 0.5 };
+export const OPT = { longSide: 1024, adaptive: true, minConf: 0.5, orient: true };
 
 export function setOpts(o) { Object.assign(OPT, o || {}); }
 

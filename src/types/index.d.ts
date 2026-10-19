@@ -37,6 +37,8 @@ export interface OCRPageResult {
   time: number;
   /** Detection metadata */
   det: DetResult;
+  /** Degrees clockwise input was rotated upright (0, 90, 180, 270) */
+  rotation?: number;
   /** Source channel: "ocr" or "text" (for digital PDFs) */
   source?: "ocr" | "text";
   /** Page label */
@@ -54,6 +56,8 @@ export interface OCROptions {
   adaptive?: boolean;
   /** Minimum confidence threshold (default: 0.5) */
   minConf?: number;
+  /** Enable automatic orientation deskew via orient.onnx (default: true) */
+  orient?: boolean;
 }
 
 export interface ModelLoadProgress {
@@ -94,14 +98,15 @@ export interface ModelInfo {
 }
 
 export interface OCREvents {
-  stage?: (name: "detect" | "script" | "recognize" | "order" | "markdown" | string, info?: Record<string, any>) => void;
-  mark?: (name: "resize" | "det" | "decode" | "script" | "rec" | "order" | string, ms: number) => void;
+  stage?: (name: "orient" | "detect" | "script" | "recognize" | "order" | "markdown" | string, info?: Record<string, any>) => void;
+  mark?: (name: "orient" | "resize" | "det" | "decode" | "script" | "rec" | "order" | string, ms: number) => void;
+  orient?: (info: { k: number; rotation: number }) => void;
   boxes?: (boxes: BoundingBox[]) => void;
   line?: (line: OCRLine) => void;
 }
 
 /**
- * Loads and initializes the 5 Indra ONNX neural models via ONNX Runtime Web.
+ * Loads and initializes the 6 Indra ONNX neural models via ONNX Runtime Web.
  */
 export function loadModels(options?: ModelLoadOptions): Promise<ModelInfo>;
 

@@ -50,11 +50,13 @@
 
 - **100% Private & Zero-Upload**: Complete client-side document processing. Ideal for confidential contracts, financial statements, medical records, and NDAs. Strictly zero telemetry, trackers, or remote storage.
 - **WASM Multi-Threading via SharedArrayBuffer**: Enabled by `Cross-Origin-Embedder-Policy: credentialless`, achieving up to **23× speedup** with 4 CPU threads over single-threaded WebAssembly.
-- **Full 5-Model Neural Architecture in Web Worker**:
-  1. `det.onnx`: DBNet-based line text detection.
-  2. `script.onnx`: Adaptive script classifier (routes Latin vs. CJK characters).
-  3. `rec.onnx` & `rec_cjk.onnx`: CRNN recognition with dynamic width binning.
-  4. `order.onnx`: Graph-based reading order and layout cluster sorting.
+- **Full 6-Model Neural Architecture in Web Worker**:
+  1. `orient.onnx`: Page orientation classifier & automatic 90°/180°/270° deskewing.
+  2. `det.onnx`: DBNet-based line text detection with adaptive multi-scale re-detection.
+  3. `script.onnx`: Adaptive script classifier (routes Latin vs. CJK characters).
+  4. `rec.onnx` & `rec_cjk.onnx`: CRNN recognition with dynamic width binning.
+  5. `order.onnx`: Graph-based reading order and layout cluster sorting.
+- **2D Table Grid Synthesis**: Geometric cell clustering and column band alignment, assembling multi-column Markdown tables (`| Col 1 | Col 2 |`) with title extraction and pipe escaping.
 - **Dual-Engine Strategy**: Instant extraction from vector PDF text layers (0-inference, ~3 ms) with automatic fallback to full neural OCR for scanned pages.
 - **Interactive Visual Verification**:
   - Bidirectional hover linking between recognized text lines and bounding boxes on the document canvas.
@@ -154,27 +156,27 @@ indra-web/
 │   │   ├── recognition.js  # CRNN batching & width-binning inference
 │   │   ├── order.js        # Reading order clustering & XY-cut algorithms
 │   │   ├── image.js        # OpenCV INTER_AREA/LINEAR scaling simulation
-│   │   ├── markdown.js     # Block classification to Markdown synthesis
+│   │   ├── markdown.js     # 2D Table reconstruction & Markdown synthesis
 │   │   └── constants.js    # Model constants, thresholds, and event yields
 │   └── types/              # Complete TypeScript declarations
 │       └── index.d.ts      # Full types for OCRLine, OCRPageResult, OCROptions
 ├── test/                   # Automated engineering test suite
 │   └── run-tests.mjs       # Artifact validation & algorithm unit tests
-├── vite.config.mjs     # Vite configuration (viteSingleFile & COOP/COEP isolation headers)
+├── vite.config.mjs         # Vite configuration (viteSingleFile & COOP/COEP isolation headers)
 ├── scripts/
-│   └── sync-dist.mjs   # Synchronizes dist/index.html to root HTML and deploy/html.js
+│   └── sync-dist.mjs       # Synchronizes dist/index.html to root HTML and deploy/html.js
 ├── dist/
-│   └── index.html      # Production standalone single-file bundle (112 KB, minified)
-├── deploy/             # Cloudflare Worker edge deployment
-│   ├── worker.js       # Lightweight edge router (injects COOP/COEP headers)
-│   ├── build.mjs       # Bundles indra-ocr.html into deploy/html.js
-│   └── wrangler.toml   # Cloudflare Worker & route configuration
-├── serve.mjs           # Node.js development server with cross-origin isolation
-├── manifest.webmanifest# PWA Web App Manifest (installable on desktop & mobile)
-├── package.json        # Modern npm scripts, exports, and metadata
-├── LICENSE             # Apache 2.0 License + OpenRAIL-M weight attribution
-├── CITATION.cff        # Citation metadata for academic and engineering use
-└── index.html          # Standalone self-contained web application (dist sync)
+│   └── index.html          # Production standalone single-file bundle (~170 KB, minified)
+├── deploy/                 # Cloudflare Worker edge deployment
+│   ├── worker.js           # Lightweight edge router (injects COOP/COEP headers)
+│   ├── build.mjs           # Bundles indra-ocr.html into deploy/html.js
+│   └── wrangler.toml       # Cloudflare Worker & route configuration
+├── manifest.webmanifest    # PWA Web App Manifest (installable on desktop & mobile)
+├── package.json            # Modern npm scripts, exports, and metadata
+├── LICENSE                 # Apache 2.0 License + OpenRAIL-M weight attribution
+├── CITATION.cff            # Citation metadata for academic and engineering use
+├── indra-ocr.html          # Standalone single-file HTML application
+└── index.html              # Standalone self-contained web application (dist sync)
 ```
 
 ---
@@ -198,7 +200,8 @@ const result = await ocrPage(imageBitmap, {
   line: ({ text, conf }) => console.log(`Recognized: ${text} (${conf.toFixed(2)})`),
 });
 
-console.log("Structured Markdown:\n", result.md);
+console.log("Automatic Deskew Angle:", result.rotation); // 0, 90, 180, 270
+console.log("Structured Markdown (with 2D tables):\n", result.md);
 console.log("Lines in Reading Order:\n", result.lines);
 ```
 

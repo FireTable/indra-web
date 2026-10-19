@@ -36,13 +36,14 @@ const I18N = {
     settingPending: "设置已改，本次运行不采用；跑完点「重新识别」生效", copy: "复制", download: "下载",
     tabPages: "版面视图", tabMd: "Markdown", tabTxt: "文本", tabJson: "JSON",
     idle: "等待文件",
-    st_intake: "解析文件", st_render: "渲染页面", st_detect: "行检测",
+    st_intake: "解析文件", st_render: "渲染页面", st_orient: "倾斜纠偏", st_detect: "行检测",
     st_script: "字形分流", st_recognize: "文字识别", st_order: "阅读顺序",
     st_markdown: "结构化输出", st_textlayer: "读取文本层", st_done: "完成",
     st_pages: "逐页识别",
     streaming: "识别中",
-    mk_resize: "缩放", mk_det: "检测", mk_decode: "解码", mk_script: "分流",
+    mk_orient: "纠偏", mk_resize: "缩放", mk_det: "检测", mk_decode: "解码", mk_script: "分流",
     mk_rec: "识别", mk_order: "阅读顺序",
+    badgeOrient: "↺ 纠偏 {deg}°",
     mkAvg: "逐段平均",
     eta: "约剩 {x}", sec: "秒", min: "分钟",
     pageFailed: "第 {n} 页失败", pagesFailed: "{n} 页失败", allFailed: "所有页都失败了，可能是文件损坏",
@@ -98,13 +99,14 @@ const I18N = {
     settingPending: "Setting changed — this run keeps the old one; hit Re-run to apply", copy: "Copy", download: "Download",
     tabPages: "Layout", tabMd: "Markdown", tabTxt: "Text", tabJson: "JSON",
     idle: "Waiting for a file",
-    st_intake: "Parse file", st_render: "Render page", st_detect: "Line detection",
+    st_intake: "Parse file", st_render: "Render page", st_orient: "Orientation", st_detect: "Line detection",
     st_script: "Script routing", st_recognize: "Text recognition", st_order: "Reading order",
     st_markdown: "Structure output", st_textlayer: "Read text layer", st_done: "Done",
     st_pages: "Per-page OCR",
     streaming: "Recognising",
-    mk_resize: "resize", mk_det: "detect", mk_decode: "decode", mk_script: "script",
+    mk_orient: "orient", mk_resize: "resize", mk_det: "detect", mk_decode: "decode", mk_script: "script",
     mk_rec: "recognise", mk_order: "order",
+    badgeOrient: "↺ Orient {deg}°",
     mkAvg: "avg per page",
     eta: "about {x} left", sec: "s", min: "min",
     pageFailed: "page failed: {n}", pagesFailed: "{n} page(s) failed", allFailed: "every page failed — the file may be corrupt",
@@ -639,10 +641,10 @@ function restoreOpts() {
 const STAGES = ["intake", "render", "pages", "done"];
 const STAGE_LABEL = { intake: "st_intake", render: "st_render", pages: "st_pages", done: "st_done" };
 /* 逐页阶段（检测 / 分流 / 识别 / 排序 / 文本层）都落在「逐页识别」这一步上 */
-const STAGE_IDX = { intake: 0, render: 1, detect: 2, recognize: 2, script: 2, order: 2,
+const STAGE_IDX = { intake: 0, render: 1, orient: 2, detect: 2, recognize: 2, script: 2, order: 2,
                     textlayer: 2, markdown: 3, done: 3 };
 /* 单页此刻在做什么，写给 #overall 看的细活，不参与步骤高亮 */
-const ACT_LABEL = { render: "st_render", detect: "st_detect", script: "st_script",
+const ACT_LABEL = { render: "st_render", orient: "st_orient", detect: "st_detect", script: "st_script",
                     recognize: "st_recognize", order: "st_order", markdown: "st_markdown",
                     textlayer: "st_textlayer" };
 const PAGE_CHIPS = ["render", "detect", "recognize", "order", "done"];
@@ -725,12 +727,19 @@ function handleEvent(m) {
      结果刚打开页面、一份文件都还没拖进来，工作流进度条就爬到了 67%，
      看上去像有东西正在处理。模型进度只报在空状态面板上。 */
   if (m.type === "progress") {
-    // 空状态面板把这一段做成看得见的等待：下到哪个文件、多少字节
-    bootState("load", m.done, `${t("bootLoad")} · ${m.file}`,
-      m.total ? `${fmtMB(m.got)} / ${fmtMB(m.total)}` : t("bootWait"));
+    // Stage 1: 模型权重并行下载 (0% ~ 75%)
+    const p = Math.min(0.75, (m.done ?? 0) * 0.75);
+    const totalBytes = Math.max(m.total || 0, 19.0 * 1024 * 1024);
+    bootState("load", p, `${t("bootLoad")} · ${m.file}`,
+      m.got ? `${fmtMB(m.got)} / ${fmtMB(totalBytes)}` : t("bootWait"));
     return;
   }
-  if (m.type === "phase") { bootState("compile", m.done, t("bootCompile"), m.file || ""); return; }
+  if (m.type === "phase") {
+    // Stage 2: WASM 会话编译 (75% ~ 99%)
+    const p = 0.75 + Math.min(0.24, (m.done ?? 0) * 0.24);
+    bootState("compile", p, `${t("bootCompile")}${m.file ? " · " + m.file : ""}`, m.file ? `${m.file} (WASM)` : "");
+    return;
+  }
   if (m.type === "log") { log(m.msg); return; }
 
   const cur = (m.tag && cardsByTag.get(m.tag)) || activePage;
@@ -738,8 +747,21 @@ function handleEvent(m) {
   if (m.type === "stage") {
     cur.setStage(m.name);
     // 步骤只推进到「逐页识别」这一步为止；当前页在做什么只更新 #overall
-    if (m.name === "detect") renderSteps(STAGES.indexOf("pages"));
+    if (m.name === "detect" || m.name === "orient") renderSteps(STAGES.indexOf("pages"));
     setProgress(null, m.name);
+  } else if (m.type === "orient") {
+    if (m.k > 0 && cur.bitmap && !cur.rotated) {
+      cur.rotated = true;
+      cur.rotation = m.rotation;
+      rotateBitmap(cur.bitmap, m.k).then((newB) => {
+        if (newB) {
+          const oldB = cur.bitmap;
+          cur.bitmap = newB;
+          oldB.close?.();
+          drawPreview(cur, cur.live || [], "idle");
+        }
+      });
+    }
   } else if (m.type === "line") {
     cur.addLine(m.line);
   } else if (m.type === "boxes") {
@@ -983,6 +1005,12 @@ function makePageCard(label, src) {
         card.el.ms.title = mk.length ? mk.map(([k, v]) => `${t("mk_" + k)} ${fmtMs(v)}`).join(" · ") : "";
       }
       card.el.src.textContent = res.source === "text" ? t("srcText") : t("srcOcr");
+      if (res.rotation && !card.el.hd.querySelector(".rot-pill")) {
+        const badge = document.createElement("span");
+        badge.className = "src rot-pill";
+        badge.textContent = t("badgeOrient", { deg: res.rotation });
+        card.el.src.parentElement.insertBefore(badge, card.el.src.nextSibling);
+      }
       if (res.det) {
         const long = Math.max(res.det.pi.dims[2], res.det.pi.dims[3]);
         card.el.src.title = `det long side ${long}, median line ${res.det.medH?.toFixed(1) ?? "-"} px`;
@@ -1225,6 +1253,32 @@ function contentBox(boxes, bmp) {
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
+async function rotateBitmap(bitmap, k) {
+  if (!bitmap || !k) return bitmap;
+  const is90 = k === 1 || k === 3;
+  const dstW = is90 ? bitmap.height : bitmap.width;
+  const dstH = is90 ? bitmap.width : bitmap.height;
+  const angle = (k === 1 ? 90 : (k === 2 ? 180 : 270)) * Math.PI / 180;
+
+  if (typeof OffscreenCanvas !== "undefined") {
+    const oc = new OffscreenCanvas(dstW, dstH);
+    const ctx = oc.getContext("2d");
+    ctx.translate(dstW / 2, dstH / 2);
+    ctx.rotate(angle);
+    ctx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+    return oc.transferToImageBitmap();
+  } else {
+    const cv = document.createElement("canvas");
+    cv.width = dstW;
+    cv.height = dstH;
+    const ctx = cv.getContext("2d");
+    ctx.translate(dstW / 2, dstH / 2);
+    ctx.rotate(angle);
+    ctx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+    return createImageBitmap(cv);
+  }
+}
+
 /* 预览绘制。按 devicePixelRatio 放大后备缓冲，否则在 Retina 上
    一张 400px 宽的画布铺到 400 CSS px 上会被拉伸糊掉。
    mode: idle 只有图 / boxes 只有检测框 / live 边识别边叠 / done 最终态 */
@@ -1396,9 +1450,17 @@ function bootInit() {
     $("#bootDrop").addEventListener(t, () => $("#bootDrop").classList.remove("over"));
 }
 const fmtMB = (b) => (b / 1048576).toFixed(1) + " MB";
+let maxBootPct = 0;
 /* phase: "load" 下载权重 / "compile" 编译会话 / "ready" 就绪 */
 function bootState(phase, pct, label, note) {
   if (!bootEl.root) return;
+  if (phase === "ready") {
+    maxBootPct = 1;
+    pct = 1;
+  } else if (pct != null) {
+    maxBootPct = Math.max(maxBootPct, pct);
+    pct = maxBootPct;
+  }
   bootEl.stat.className = "bstat " + (phase === "ready" ? "ready" : "loading");
   bootEl.label.textContent = label;
   bootEl.pct.textContent = phase === "ready" ? "" : (pct != null ? Math.round(pct * 100) + "%" : "");
@@ -1769,6 +1831,15 @@ async function runJob(job, useText) {
        （会出现「1 页的 telegram 报成 2 页」）。 */
     if (superseded) return;
     job.done = true;
+    if (res.rotation && card.bitmap && !card.rotated) {
+      const k = Math.round(res.rotation / 90) % 4;
+      if (k > 0) {
+        const oldB = card.bitmap;
+        card.bitmap = await rotateBitmap(oldB, k);
+        card.rotated = true;
+        oldB.close?.();
+      }
+    }
     const out = { label, pageNo: i, pageTotal: n, ...res, source: "ocr" };
     pages.push(out); out.__card = card;
     card.setStage("done");
