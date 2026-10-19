@@ -1,0 +1,66 @@
+{
+  "name": "indra-web",
+  "version": "1.0.0",
+  "description": "Pure in-browser client-side document OCR and layout parsing powered by WebAssembly & ONNX Runtime Web",
+  "type": "module",
+  "main": "./src/core/index.js",
+  "module": "./src/core/index.js",
+  "types": "./src/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/types/index.d.ts",
+      "import": "./src/core/index.js",
+      "default": "./src/core/index.js"
+    },
+    "./core": {
+      "types": "./src/types/index.d.ts",
+      "import": "./src/core/index.js",
+      "default": "./src/core/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "index.html",
+    "indra-ocr.html",
+    "manifest.webmanifest",
+    "LICENSE",
+    "README.md",
+    "CITATION.cff"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build && node scripts/sync-dist.mjs",
+    "build:worker": "vite build && node scripts/sync-dist.mjs",
+    "preview": "vite preview",
+    "test": "node test/run-tests.mjs",
+    "deploy:worker": "npm run build:worker && cd deploy && wrangler deploy"
+  },
+  "keywords": [
+    "ocr",
+    "webassembly",
+    "onnxruntime-web",
+    "client-side",
+    "privacy",
+    "document-parsing",
+    "deep-learning",
+    "markdown"
+  ],
+  "author": "FireTable",
+  "license": "Apache-2.0",
+  "homepage": "https://indra-web.firetable.tech",
+  "bugs": {
+    "url": "https://github.com/FireTable/indra-web/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FireTable/indra-web"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4",
+    "vite-plugin-singlefile": "^2.3.4"
+  },
+  "dependencies": {
+    "marked": "^18.1.1"
+  }
+}

@@ -1,0 +1,39 @@
+name = "indra-web"
+main = "worker.js"
+# 这个 Worker 不碰任何平台 API（没有 KV / D1 / R2，没有定时任务），
+# 所以 compat date 取一个老而稳的值即可。写成「今天」只会让本地 wrangler dev
+# 抱怨它自带的运行时还没到那个日期，然后静默回退——警告是噪声，不是问题。
+compatibility_date = "2025-07-18"
+
+# 顺便给一个 *.workers.dev 的地址：DNS 还没配好也能先用起来验证。
+workers_dev = true
+
+# ------------------------------------------------------------------
+# 挂到 indra.firetable.tech。
+#
+# route **必须写 zone_name**（或 zone_id）。只写 pattern 会报：
+#   10082  When using wildcard host ssl for saas entitlement you must
+#          specify the zone per route using "zone_id" or "zone_name"
+# 用字符串简写 routes = ["indra.firetable.tech/*"] 同样过不去。
+#
+# A) firetable.tech 整个 zone 已经在 Cloudflare 上（最常见）
+#    → route，接管 indra-web 与 indra 子域，zone 里别的东西不受影响
+[[routes]]
+pattern = "indra-web.firetable.tech"
+custom_domain = true
+
+[[routes]]
+pattern = "indra-web.firetable.tech/*"
+zone_name = "firetable.tech"
+#
+# B) indra.firetable.tech 是**单独接入 Cloudflare 的 zone**（委派子域）
+#    → 换成下面这段，并且要先在 DNS 里把 indra.firetable.tech 的 NS
+#      指向 Cloudflare。custom_domain 会自动出证书，不用自己配。
+#
+# [[routes]]
+# pattern = "indra.firetable.tech"
+# custom_domain = true
+# ------------------------------------------------------------------
+
+# 页面只有一个 HTML，不需要 KV / D1 / R2，也不需要任何环境变量。
+# 推理全在浏览器里跑，模型权重从 Hugging Face 直连，Worker 不碰文件。

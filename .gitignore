@@ -1,0 +1,38 @@
+# 生成物
+dist/
+deploy/html.js          # 由 deploy/build.py 从 indra-ocr.html 产出
+deploy/.wrangler/
+deploy/node_modules/
+node_modules/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# 绝不进仓库的东西
+.env
+.env.*
+*.pem
+*.key
+*.p12
+wrangler.toml.local
+.dev.vars
+
+# 本地跑起来的日志和临时产物
+*.log
+tmp/
+
+# 回归样例：**整个目录都不进仓库**
+#
+# 主要原因：其中两张聊天截图是真实 X 账号的招聘帖，含别人的认证 handle、
+# 昵称、公司和具体薪资。推到公开仓库等于替他们永久公示并让搜索引擎索引，
+# 事后删文件撤不回（fork、缓存、第三方镜像都留着）。
+#
+# 顺带的好处：样例加起来好几 MB，本地跑应用根本不需要它们，
+# 仓库干净点也好 clone。逐个样例是什么、哪些能公开，见 SAMPLES.md；
+# 干净克隆要跑那两条用例就 python3 tools/regenerate-samples.py。
+samples/

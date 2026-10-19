@@ -1,0 +1,20 @@
+# 如果你用 Cloudflare Pages 而不是 Workers，把这个文件放到 Pages 项目的
+# 发布目录根部（和 index.html 并排），效果和 worker.js 完全一样。
+#
+#   Pages 项目根目录：
+#     index.html        ← indra-ocr.html 改名
+#     _headers          ← 本文件
+#     _redirects        ← 可选
+#
+# Pages 会自动给静态资源加 ETag 和压缩，这里只补 Pages 默认不发的两个头。
+
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+# Pages 默认会长期缓存带哈希的静态资源；这个 HTML 名字里没有哈希，
+# 每次发版内容都会变，所以只让边缘缓存 5 分钟，浏览器始终回源校验。
+/index.html
+  Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600

@@ -1,0 +1,19 @@
+{
+  "name": "INDRA OCR Web - In-Browser Document Recognition",
+  "short_name": "INDRA OCR",
+  "description": "100% On-Device Neural Document OCR and Parsing powered by WebAssembly and ONNX Runtime Web.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0a0a0b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity", "office"]
+}

@@ -1,0 +1,6 @@
+# 生成物：由 deploy/build.py 从 indra-ocr.html 产出
+html.js
+
+# wrangler 本地状态
+.wrangler/
+node_modules/

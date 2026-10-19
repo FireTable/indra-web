@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use or reference this project, please cite it as below."
+title: "INDRA OCR Web: Pure In-Browser Client-Side Document Recognition"
+authors:
+  - name: "FireTable"
+    website: "https://indra-web.firetable.tech"
+version: 1.0.0
+date-released: 2026-10-18
+url: "https://indra-web.firetable.tech"
+repository-code: "https://github.com/FireTable/indra-web"
+keywords:
+  - ocr
+  - webassembly
+  - onnxruntime-web
+  - deep-learning
+  - client-side
+  - privacy
+license: Apache-2.0
