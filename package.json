@@ -25,6 +25,7 @@
     "manifest.webmanifest",
     "LICENSE",
     "README.md",
+    "README_zh.md",
     "CITATION.cff"
   ],
   "scripts": {
