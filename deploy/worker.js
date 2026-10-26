@@ -49,7 +49,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 </urlset>
 `;
 
-const FAVICON_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0b'/><rect x='6' y='6' width='20' height='20' rx='3' fill='%23e8e8ea'/><rect x='11' y='11' width='10' height='10' rx='1.5' fill='%230a0a0b'/></svg>`;
+const FAVICON_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='4' y1='4' x2='60' y2='60' gradientUnits='userSpaceOnUse'><stop offset='0%' stop-color='%23FFFFFF'/><stop offset='45%' stop-color='%23F4F4F6'/><stop offset='100%' stop-color='%23A1A1AA'/></linearGradient></defs><rect x='4' y='4' width='56' height='56' rx='12' fill='url(%23g)'/><rect x='18' y='18' width='28' height='28' rx='6' fill='%2309090B'/></svg>`;
 
 const MANIFEST_JSON = JSON.stringify({
   name: "INDRA OCR Web",
@@ -72,6 +72,11 @@ export default {
     // 探活：部署完先 curl 这个，别去猜页面是不是活的
     if (url.pathname === "/healthz") {
       return new Response("ok", { headers: { "content-type": "text/plain; charset=utf-8" } });
+    }
+
+    // OpenGraph 社交卡片分享图
+    if (url.pathname === "/og.png") {
+      return fetch("https://cdn.firetable.tech/blog/global/og_fashion_indra.png");
     }
 
     // SEO: robots.txt
