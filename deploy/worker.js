@@ -76,7 +76,12 @@ export default {
 
     // OpenGraph 社交卡片分享图
     if (url.pathname === "/og.png") {
-      return fetch("https://cdn.firetable.tech/blog/global/og_fashion_indra.png");
+      return fetch("https://cdn.firetable.tech/blog/global/og_fashion_indra_en.png");
+    }
+
+    // Logo
+    if (url.pathname === "/logo.png") {
+      return fetch("https://cdn.firetable.tech/blog/global/logo_indra_ocr.png");
     }
 
     // SEO: robots.txt
