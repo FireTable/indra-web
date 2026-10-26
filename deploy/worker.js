@@ -49,7 +49,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 </urlset>
 `;
 
-const FAVICON_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none'><rect x='3' y='3' width='58' height='58' rx='14' fill='%2309090B' stroke='%23FFFFFF' stroke-width='4'/><path d='M13 23V15C13 13.8954 13.8954 13 15 13H23' stroke='%2338BDF8' stroke-width='4.5' stroke-linecap='round'/><path d='M51 23V15C51 13.8954 50.1046 13 49 13H41' stroke='%2338BDF8' stroke-width='4.5' stroke-linecap='round'/><path d='M13 41V50C13 51.1046 13.8954 51 15 51H23' stroke='%2338BDF8' stroke-width='4.5' stroke-linecap='round'/><path d='M51 41V50C51 50.1046 50.1046 51 49 51H41' stroke='%2338BDF8' stroke-width='4.5' stroke-linecap='round'/><line x1='15' y1='32' x2='49' y2='32' stroke='%2338BDF8' stroke-width='3.5' stroke-linecap='round'/><circle cx='32' cy='32' r='4' fill='%23FFFFFF'/><circle cx='32' cy='32' r='7.5' stroke='%2338BDF8' stroke-width='2' stroke-opacity='0.85'/></svg>`;
+const FAVICON_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none'><defs><linearGradient id='g' x1='4' y1='4' x2='60' y2='60' gradientUnits='userSpaceOnUse'><stop offset='0%' stop-color='%23FFFFFF'/><stop offset='60%' stop-color='%23F4F4F6'/><stop offset='100%' stop-color='%23D4D4D8'/></linearGradient></defs><rect x='4' y='4' width='56' height='56' rx='14' fill='url(%23g)'/><rect x='19' y='19' width='26' height='26' rx='7' fill='%2309090B'/></svg>`;
 
 const MANIFEST_JSON = JSON.stringify({
   name: "INDRA OCR Web",
