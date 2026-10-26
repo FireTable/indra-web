@@ -76,7 +76,7 @@ export default {
 
     // OpenGraph 社交卡片分享图
     if (url.pathname === "/og.png") {
-      return fetch("https://cdn.firetable.tech/blog/global/og_fashion_indra_en.png");
+      return fetch("https://cdn.firetable.tech/blog/global/og_fashion_indra_v2.png");
     }
 
     // Logo
